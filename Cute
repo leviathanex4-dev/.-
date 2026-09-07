@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For Yayang</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+            background: #0f291e;
+        }
+
+        /* ===== AESTHETIC BACKGROUND ===== */
+        .bg-layer { position: fixed; inset: 0; z-index: 0; }
+        .bg-gradient {
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(45, 106, 63, 0.4) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(74, 124, 46, 0.3) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(26, 71, 42, 0.8) 0%, #0a1f15 100%);
+        }
+        .bg-orbs { position: absolute; inset: 0; overflow: hidden; }
+        .orb {
+            position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.15;
+            animation: orbFloat 20s infinite ease-in-out;
+        }
+        .orb-1 { width: 400px; height: 400px; background: #4a7c2e; top: -100px; left: -100px; }
+        .orb-2 { width: 350px; height: 350px; background: #2d6a3f; bottom: -80px; right: -80px; animation-delay: -7s; }
+        .orb-3 { width: 300px; height: 300px; background: #6b9e3e; top: 50%; left: 50%; transform: translate(-50%, -50%); animation-delay: -14s; }
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.95); }
+        }
+        .bg-noise {
+            position: fixed; inset: 0; opacity: 0.03; z-index: 1; pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        }
+        .particle {
+            position: fixed; border-radius: 50%; background: rgba(255, 255, 255, 0.08);
+            pointer-events: none; z-index: 1; animation: particleFloat linear infinite;
+        }
+        @keyframes particleFloat {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.6; } 90% { opacity: 0.6; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+
+        /* ===== SCREEN SYSTEM ===== */
+        .screen {
+            display: none; position: fixed; inset: 0; z-index: 10;
+            flex-direction: column; align-items: center; justify-content: center; padding: 24px;
+        }
+        .screen.active { display: flex; animation: screenFadeIn 0.5s ease; }
+        @keyframes screenFadeIn {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* ===== LOGIN CARD ===== */
+        .login-card {
+            background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 56px 52px; border-radius: 24px; text-align: center;
+            max-width: 440px; width: 100%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            animation: cardEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes cardEnter {
+            from { opacity: 0; transform: translateY(20px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .login-card .icon { font-size: 2.5rem; margin-bottom: 24px; display: block; opacity: 0.9; }
+        .login-card .question {
+            font-family: 'Playfair Display', serif; font-size: 1.75rem;
+            color: rgba(255, 255, 255, 0.92); margin-bottom: 40px; font-weight: 400;
+            line-height: 1.4; min-height: 60px; display: flex; align-items: center; justify-content: center;
+            letter-spacing: 0.5px;
+        }
+        .btn-row { display: flex; gap: 16px; justify-content: center; }
+        .btn {
+            padding: 14px 36px; border: none; border-radius: 12px;
+            font-family: 'Inter', sans-serif; font-size: 0.95rem; font-weight: 500;
+            cursor: pointer; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            min-width: 110px; letter-spacing: 0.3px;
+        }
+        .btn-primary {
+            background: rgba(107, 158, 62, 0.2); color: #a8d080;
+            border: 1px solid rgba(107, 158, 62, 0.3);
+            box-shadow: 0 4px 20px rgba(107, 158, 62, 0.1);
+        }
+        .btn-primary:hover { background: rgba(107, 158, 62, 0.3); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(107, 158, 62, 0.2); }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); transform: translateY(-2px); }
+        .btn:active { transform: translateY(0) scale(0.97); }
+
+        /* ===== LETTER CHASE SCREEN ===== */
+        .chase-area { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+        .chase-hint {
+            position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.35); font-size: 0.9rem; font-weight: 300;
+            letter-spacing: 1px; text-transform: uppercase; animation: hintPulse 3s ease-in-out infinite;
+        }
+        @keyframes hintPulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.6; } }
+        .chase-letter {
+            font-size: 4.5rem; cursor: pointer; user-select: none; position: absolute;
+            filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.4)); transition: transform 0.15s ease; z-index: 10;
+        }
+        .chase-letter:hover { transform: scale(1.15); }
+        .chase-letter:active { transform: scale(0.9); }
+
+        /* ===== OVERLAYS ===== */
+        .overlay {
+            display: none; position: fixed; inset: 0; z-index: 100;
+            background: rgba(5, 15, 10, 0.75); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            justify-content: center; align-items: center; padding: 24px; animation: overlayFade 0.3s ease;
+        }
+        .overlay.active { display: flex; }
+        @keyframes overlayFade { from { opacity: 0; } to { opacity: 1; } }
+        .overlay-card {
+            background: rgba(20, 40, 30, 0.85); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.08); padding: 48px 44px; border-radius: 20px;
+            text-align: center; max-width: 400px; width: 100%;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+            animation: overlaySlide 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes overlaySlide {
+            from { opacity: 0; transform: translateY(16px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .overlay-card .question {
+            font-family: 'Playfair Display', serif; font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.9); margin-bottom: 36px; line-height: 1.4; font-weight: 400;
+        }
+
+        /* ===== FINAL LETTER SCREEN ===== */
+        .letter-stage {
+            display: none; position: fixed; inset: 0; z-index: 10;
+            align-items: center; justify-content: center;
+            padding: 20px; overflow-y: auto;
+        }
+        .letter-stage.active { display: flex; animation: screenFadeIn 0.6s ease; }
+
+        /* Custom scrollbar */
+        .letter-stage::-webkit-scrollbar { width: 6px; }
+        .letter-stage::-webkit-scrollbar-track { background: transparent; }
+        .letter-stage::-webkit-scrollbar-thumb { background: rgba(107, 158, 62, 0.3); border-radius: 10px; }
+        .letter-stage::-webkit-scrollbar-thumb:hover { background: rgba(107, 158, 62, 0.5); }
+
+        .letter-paper {
+            background: linear-gradient(180deg, #faf8f3 0%, #f5f1e8 100%);
+            padding: 44px 36px; border-radius: 6px;
+            max-width: 420px; width: 100%;
+            position: relative;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.02);
+            animation: paperUnfold 1s cubic-bezier(0.16, 1, 0.3, 1);
+            transform-origin: top center;
+            margin: auto;
+        }
+        @keyframes paperUnfold {
+            0% { opacity: 0; transform: perspective(1000px) rotateX(-8deg) translateY(30px); }
+            100% { opacity: 1; transform: perspective(1000px) rotateX(0deg) translateY(0); }
+        }
+        /* Red margin line */
+        .letter-paper::before {
+            content: ''; position: absolute; top: 0; left: 44px;
+            width: 1.5px; height: 100%;
+            background: linear-gradient(180deg, transparent 2%, rgba(200, 80, 80, 0.06) 5%, rgba(200, 80, 80, 0.06) 95%, transparent 98%);
+        }
+
+        .letter-header {
+            text-align: center; margin-bottom: 28px; padding-bottom: 20px;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+        }
+        .letter-header .seal { font-size: 2.4rem; margin-bottom: 10px; display: block; opacity: 0.85; }
+        .letter-header h1 {
+            font-family: 'Playfair Display', serif; font-size: 1.15rem;
+            color: #1a3a25; font-weight: 600; letter-spacing: 3px; text-transform: uppercase;
+        }
+
+        .letter-body {
+            font-family: 'Playfair Display', serif; color: #2c2c2c;
+            font-size: 1.05rem; line-height: 2;
+        }
+        .letter-body p { margin-bottom: 16px; }
+        .letter-body .salutation {
+            font-weight: 600; color: #1a3a25; font-size: 1.15rem; margin-bottom: 20px;
+        }
+        .letter-body .closing-block { margin-top: 32px; text-align: right; }
+        .letter-body .closing { font-style: italic; color: #555; margin-bottom: 4px; }
+        .letter-body .signature { font-weight: 700; color: #1a3a25; font-size: 1.1rem; }
+
+        .letter-footer {
+            text-align: center; margin-top: 28px; padding-top: 20px;
+            border-top: 1px solid rgba(0,0,0,0.06);
+        }
+        .letter-footer .heart {
+            color: #c85050; font-size: 1.6rem;
+            animation: heartbeat 2s ease-in-out infinite; display: inline-block;
+        }
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            15% { transform: scale(1.12); }
+            30% { transform: scale(1); }
+            45% { transform: scale(1.08); }
+        }
+
+        /* ===== CUTE EMOJI DECORATIONS ===== */
+        .emoji-divider {
+            text-align: center; font-size: 1.3rem;
+            margin: 22px 0; letter-spacing: 8px; opacity: 0.6;
+            user-select: none;
+        }
+        .emoji-float {
+            position: absolute; font-size: 1.6rem; pointer-events: none;
+            animation: emojiBob 3s ease-in-out infinite; opacity: 0.7; z-index: 5;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+        @keyframes emojiBob {
+            0%, 100% { transform: translateY(0) rotate(-5deg); }
+            50% { transform: translateY(-12px) rotate(5deg); }
+        }
+
+        /* Cute green creature (CSS chinzilla-like) */
+        .chinzilla {
+            width: 50px; height: 44px; position: absolute;
+            pointer-events: none; z-index: 5; opacity: 0.8;
+        }
+        .chinzilla-body {
+            width: 44px; height: 36px; background: #7cb342;
+            border-radius: 50% 50% 45% 45%; position: absolute; bottom: 0; left: 3px;
+            box-shadow: inset -4px -4px 8px rgba(0,0,0,0.1);
+        }
+        .chinzilla-ear {
+            width: 14px; height: 18px; background: #7cb342;
+            border-radius: 50% 50% 40% 40%; position: absolute; top: 0;
+            box-shadow: inset -2px -2px 4px rgba(0,0,0,0.08);
+        }
+        .chinzilla-ear.left { left: 6px; transform: rotate(-15deg); }
+        .chinzilla-ear.right { right: 6px; transform: rotate(15deg); }
+        .chinzilla-ear-inner {
+            width: 8px; height: 12px; background: #ffccbc;
+            border-radius: 50%; position: absolute; bottom: 2px; left: 3px;
+        }
+        .chinzilla-eye {
+            width: 5px; height: 5px; background: #1a1a1a;
+            border-radius: 50%; position: absolute; top: 18px;
+            animation: blink 4s infinite;
+        }
+        .chinzilla-eye.left { left: 12px; }
+        .chinzilla-eye.right { right: 12px; }
+        .chinzilla-nose {
+            width: 4px; height: 3px; background: #ffab91;
+            border-radius: 50%; position: absolute; top: 24px; left: 50%; transform: translateX(-50%);
+        }
+        .chinzilla-mouth {
+            width: 8px; height: 4px; border: 1.5px solid #1a1a1a;
+            border-top: none; border-radius: 0 0 50% 50%;
+            position: absolute; top: 26px; left: 50%; transform: translateX(-50%);
+        }
+        .chinzilla-tail {
+            width: 18px; height: 18px; background: #7cb342;
+            border-radius: 50%; position: absolute; bottom: 4px; right: -8px;
+            box-shadow: inset -2px -2px 4px rgba(0,0,0,0.1);
+        }
+        @keyframes blink {
+            0%, 45%, 55%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(0.1); }
+        }
+        .chinzilla-bounce { animation: chinzillaBounce 2.5s ease-in-out infinite; }
+        @keyframes chinzillaBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        /* Cute paw prints */
+        .paw-print {
+            position: absolute; font-size: 1.1rem; opacity: 0.25;
+            pointer-events: none; z-index: 5;
+        }
+
+        /* Confetti */
+        .confetti {
+            position: fixed; pointer-events: none; z-index: 200;
+        }
+        @keyframes confettiFall {
+            0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* Mobile */
+        @media (max-width: 600px) {
+            .login-card { padding: 40px 28px; }
+            .login-card .question { font-size: 1.4rem; }
+            .letter-paper { padding: 32px 24px; max-width: 360px; }
+            .letter-body { font-size: 0.98rem; line-height: 1.85; }
+            .chase-letter { font-size: 3.5rem; }
+            .emoji-float { font-size: 1.2rem; }
+        }
+    </style>
+<base target="_blank">
+</head>
+<body>
+    <!-- Background layers -->
+    <div class="bg-layer bg-gradient"></div>
+    <div class="bg-layer bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+    <div class="bg-noise"></div>
+    <div id="particles"></div>
+
+    <!-- Floating cute decorations around letter (hidden initially) -->
+    <div id="letterDecorations" style="display:none;">
+        <div class="emoji-float" style="top:12%; left:8%; animation-delay:0s;">🌿</div>
+        <div class="emoji-float" style="top:18%; right:10%; animation-delay:0.7s;">🍀</div>
+        <div class="emoji-float" style="top:35%; left:5%; animation-delay:1.2s;">🌱</div>
+        <div class="emoji-float" style="top:45%; right:6%; animation-delay:0.4s;">🥝</div>
+        <div class="emoji-float" style="top:60%; left:9%; animation-delay:1.8s;">🦎</div>
+        <div class="emoji-float" style="top:72%; right:8%; animation-delay:0.9s;">🐸</div>
+        <div class="emoji-float" style="top:85%; left:6%; animation-delay:1.5s;">🥑</div>
+        <div class="emoji-float" style="top:90%; right:12%; animation-delay:0.3s;">🍏</div>
+
+        <!-- CSS Chinzillas -->
+        <div class="chinzilla chinzilla-bounce" style="top:15%; right:15%; animation-delay:0s;">
+            <div class="chinzilla-ear left"><div class="chinzilla-ear-inner"></div></div>
+            <div class="chinzilla-ear right"><div class="chinzilla-ear-inner"></div></div>
+            <div class="chinzilla-body"></div>
+            <div class="chinzilla-eye left"></div>
+            <div class="chinzilla-eye right"></div>
+            <div class="chinzilla-nose"></div>
+            <div class="chinzilla-mouth"></div>
+            <div class="chinzilla-tail"></div>
+        </div>
+        <div class="chinzilla chinzilla-bounce" style="bottom:18%; left:12%; animation-delay:1s; transform:scale(0.85);">
+            <div class="chinzilla-ear left"><div class="chinzilla-ear-inner"></div></div>
+            <div class="chinzilla-ear right"><div class="chinzilla-ear-inner"></div></div>
+            <div class="chinzilla-body"></div>
+            <div class="chinzilla-eye left"></div>
+            <div class="chinzilla-eye right"></div>
+            <div class="chinzilla-nose"></div>
+            <div class="chinzilla-mouth"></div>
+            <div class="chinzilla-tail"></div>
+        </div>
+
+        <!-- Paw prints trail -->
+        <div class="paw-print" style="top:25%; left:15%; transform:rotate(20deg);">🐾</div>
+        <div class="paw-print" style="top:40%; right:14%; transform:rotate(-15deg);">🐾</div>
+        <div class="paw-print" style="top:55%; left:12%; transform:rotate(30deg);">🐾</div>
+        <div class="paw-print" style="top:70%; right:16%; transform:rotate(-25deg);">🐾</div>
+        <div class="paw-print" style="top:82%; left:18%; transform:rotate(10deg);">🐾</div>
+    </div>
+
+    <!-- ===== SCREEN 1: LOGIN ===== -->
+    <div class="screen active" id="loginScreen">
+        <div class="login-card">
+            <span class="icon">🔒</span>
+            <div class="question" id="loginQuestion">are you yayang?</div>
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="handleLogin('yes')">Yes</button>
+                <button class="btn btn-secondary" onclick="handleLogin('no')">No</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SCREEN 2: LETTER CHASE ===== -->
+    <div class="screen" id="letterScreen">
+        <div class="chase-area" id="chaseArea">
+            <div class="chase-letter" id="chaseLetter">💌</div>
+            <div class="chase-hint">Catch the letter</div>
+        </div>
+    </div>
+
+    <!-- ===== OVERLAY: Are you sure? ===== -->
+    <div class="overlay" id="sureOverlay">
+        <div class="overlay-card">
+            <div class="question">are you sure you want to open this?</div>
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="handleSure('yes')">Yes</button>
+                <button class="btn btn-secondary" onclick="handleSure('no')">No</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== OVERLAY: Is JD handsome? ===== -->
+    <div class="overlay" id="handsomeOverlay">
+        <div class="overlay-card">
+            <div class="question">Is JD handsome?</div>
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="handleHandsome('yes')">Yes</button>
+                <button class="btn btn-secondary" onclick="handleHandsome('no')">No</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== OVERLAY: Is he cute? ===== -->
+    <div class="overlay" id="cuteOverlay">
+        <div class="overlay-card">
+            <div class="question">is he cute?</div>
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="handleCute('yes')">Yes</button>
+                <button class="btn btn-secondary" onclick="handleCute('no')">No</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SCREEN 3: THE LETTER ===== -->
+    <div class="letter-stage" id="finalScreen">
+        <div class="letter-paper">
+            <div class="letter-header">
+                <span class="seal">💌</span>
+                <h1>A Letter For You</h1>
+            </div>
+
+            <div class="emoji-divider">🌿 🍀 🌱</div>
+
+            <div class="letter-body">
+                <p class="salutation">Dear Yayang,</p>
+
+                <div class="emoji-divider" style="font-size:1rem; margin:14px 0;">🥝 ✨ 🥑</div>
+
+                <p>Hello! Are you currently having a nice day? Well, I hope you are. 🌸</p>
+
+                <div class="emoji-divider" style="font-size:1rem; margin:14px 0;">🦎 💚 🐸</div>
+
+                <p>I just want to say sorry if I have offended you yesterday night, I was insensitive with my statements and I admit it. But amidst my insensitivity, know that I truly did not mean anything bad. 🍃</p>
+
+                <div class="emoji-divider" style="font-size:1rem; margin:14px 0;">🌱 🌿 🍀</div>
+
+                <p>I just wanted to say that there must be a limit that you'd put on yourself as to how much you allow yourself to intake, but it was just that my way of relaying my message was wrong. 🥑</p>
+
+                <div class="emoji-divider" style="font-size:1rem; margin:14px 0;">🐢 🌿 🦖</div>
+
+                <p>Yayang, know that I am really sorry. Words aren't enough to express how sorry I am. 🌿</p>
+
+                <div class="emoji-divider" style="font-size:1rem; margin:14px 0;">🍏 ✨ 🥝</div>
+
+                <p>I am aware that we have talked about me being insensitive with my words — and still I have done it again. I'll take this as a lesson to further improve. 🌱</p>
+
+                <div class="emoji-divider" style="font-size:1rem; margin:14px 0;">🌿 🍀 🌱</div>
+
+                <div class="closing-block">
+                    <p class="closing">Yours truly,</p>
+                    <p class="signature">JD</p>
+                </div>
+            </div>
+
+            <div class="emoji-divider" style="margin:24px 0 16px;">🌿 🍀 🌱 🥝 🦎 🐸 🥑 🍏 🐢 🦖</div>
+
+            <div class="letter-footer">
+                <span class="heart">❤️</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== Floating particles =====
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 25; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                const size = 2 + Math.random() * 4;
+                p.style.width = size + 'px'; p.style.height = size + 'px';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.animationDuration = (12 + Math.random() * 16) + 's';
+                p.style.animationDelay = Math.random() * 10 + 's';
+                container.appendChild(p);
+            }
+        }
+        createParticles();
+
+        // ===== LOGIN FLOW =====
+        let loginStep = 0;
+        function handleLogin(answer) {
+            const q = document.getElementById('loginQuestion');
+            if (loginStep === 0) {
+                if (answer === 'yes') { q.textContent = 'are you sure?'; loginStep = 1; }
+                else { q.textContent = 'are you really not?'; loginStep = 2; }
+            } else if (loginStep === 1) {
+                if (answer === 'yes') { q.textContent = 'are you really really sure?'; loginStep = 3; }
+                else { q.textContent = 'are you really not?'; loginStep = 2; }
+            } else if (loginStep === 2) {
+                if (answer === 'yes') { q.textContent = 'are you sure?'; loginStep = 1; }
+                else { q.textContent = 'are you really really sure?'; loginStep = 3; }
+            } else if (loginStep === 3) {
+                if (answer === 'yes') {
+                    document.getElementById('loginScreen').classList.remove('active');
+                    document.getElementById('letterScreen').classList.add('active');
+                    centerLetter();
+                } else { q.textContent = 'are you yayang?'; loginStep = 0; }
+            }
+        }
+
+        // ===== LETTER CHASE (no counter) =====
+        let clickCount = 0;
+        const letter = document.getElementById('chaseLetter');
+        const chaseArea = document.getElementById('chaseArea');
+        function centerLetter() {
+            letter.style.left = '50%'; letter.style.top = '50%';
+            letter.style.transform = 'translate(-50%, -50%)';
+        }
+        function moveLetterRandomly() {
+            const rect = chaseArea.getBoundingClientRect();
+            const pad = 80;
+            const maxX = rect.width - pad * 2;
+            const maxY = rect.height - pad * 2;
+            const x = Math.random() * maxX + pad;
+            const y = Math.random() * maxY + pad;
+            letter.style.left = x + 'px'; letter.style.top = y + 'px';
+            letter.style.transform = 'translate(-50%, -50%)';
+        }
+        letter.addEventListener('click', function() {
+            clickCount++;
+            if (clickCount < 5) {
+                letter.style.transform = 'translate(-50%, -50%) scale(0.75)';
+                setTimeout(() => moveLetterRandomly(), 120);
+            } else {
+                setTimeout(() => { document.getElementById('sureOverlay').classList.add('active'); }, 250);
+            }
+        });
+
+        // ===== OVERLAY HANDLERS =====
+        function handleSure(answer) {
+            if (answer === 'yes') {
+                document.getElementById('sureOverlay').classList.remove('active');
+                document.getElementById('handsomeOverlay').classList.add('active');
+            } else {
+                document.getElementById('sureOverlay').classList.remove('active');
+                clickCount = 4; moveLetterRandomly();
+            }
+        }
+        function handleHandsome(answer) {
+            if (answer === 'yes') {
+                document.getElementById('handsomeOverlay').classList.remove('active');
+                document.getElementById('cuteOverlay').classList.add('active');
+            } else {
+                document.getElementById('handsomeOverlay').classList.remove('active');
+                setTimeout(() => document.getElementById('handsomeOverlay').classList.add('active'), 100);
+            }
+        }
+        function handleCute(answer) {
+            if (answer === 'yes') {
+                document.getElementById('cuteOverlay').classList.remove('active');
+                document.getElementById('letterScreen').classList.remove('active');
+                document.getElementById('finalScreen').classList.add('active');
+                document.getElementById('letterDecorations').style.display = 'block';
+                createConfetti();
+            } else {
+                document.getElementById('cuteOverlay').classList.remove('active');
+                setTimeout(() => document.getElementById('cuteOverlay').classList.add('active'), 100);
+            }
+        }
+
+        // ===== CONFETTI =====
+        function createConfetti() {
+            const colors = ['#a8d080', '#6b9e3e', '#c85050', '#f9ca24', '#45b7d1', '#ff9ff3', '#ffffff'];
+            for (let i = 0; i < 100; i++) {
+                setTimeout(() => {
+                    const c = document.createElement('div');
+                    c.className = 'confetti';
+                    c.style.left = Math.random() * 100 + '%'; c.style.top = '-10px';
+                    const size = 4 + Math.random() * 8;
+                    c.style.width = size + 'px'; c.style.height = size + 'px';
+                    c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    c.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                    c.style.opacity = 0.6 + Math.random() * 0.4;
+                    c.style.animation = `confettiFall ${2.5 + Math.random() * 3}s linear forwards`;
+                    document.body.appendChild(c);
+                    setTimeout(() => c.remove(), 6000);
+                }, i * 30);
+            }
+        }
+    </script>
+</body>
+</html>
